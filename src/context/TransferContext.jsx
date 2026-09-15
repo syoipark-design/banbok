@@ -2,6 +2,26 @@ import { createContext, useContext, useState } from 'react';
 
 const TransferContext = createContext();
 
+// 피그마 45:1947 기본 4개 — 역순 저장(렌더 시 .reverse()로 원래 순서 복원)
+const makeDefault = (name, logo) => ({
+  recipient: { name, account: '', logo },
+  name,
+  category: '',
+  amount: 0,
+  scheduleType: 'monthly',
+  day: 25,
+  weekdays: [],
+  amountLabel: '0원',
+  dateLabel: '매월 25일',
+});
+
+const DEFAULT_TRANSFERS = [
+  makeDefault('순대트럭', '/assets/freq-avatar-truck.png'),
+  makeDefault('네일샵',   '/assets/freq-avatar-nail.png'),
+  makeDefault('고교동창회', '/assets/freq-avatar-school.png'),
+  makeDefault('울딸 용돈', '/assets/freq-avatar-uldal.png'),
+];
+
 const EMPTY_DRAFT = {
   recipient: null,       // { name, account, logo } — FrequentSave에서 선택
   category: '',          // TransferPurpose에서 선택
@@ -13,7 +33,7 @@ const EMPTY_DRAFT = {
 };
 
 export function TransferProvider({ children }) {
-  const [savedTransfers, setSavedTransfers] = useState([]);
+  const [savedTransfers, setSavedTransfers] = useState(DEFAULT_TRANSFERS);
   const [draft, setDraft] = useState(EMPTY_DRAFT);
 
   const updateDraft = (patch) => setDraft(prev => ({ ...prev, ...patch }));
