@@ -1,8 +1,9 @@
 // 피그마 10:880(매월) / 10:977(매주) — 두 상태 통합, 375×812
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
 import girlSvg from '../assets/girl.svg';
+import { useTransfers } from '../context/TransferContext';
 
 const A = (n) => `/assets/${n}`;
 const MAX_AMOUNT = 100_000_000; // 1억 한도
@@ -19,11 +20,9 @@ const DAY_BTNS = [
 
 export default function TransferAmount() {
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const category = state?.category ?? '용돈';
-  const recipient = state?.recipient ?? {
-    name: '이유진', account: '신한 110123456789', logo: A('fs-logo-shinhan.svg'),
-  };
+  const { draft, updateDraft } = useTransfers();
+  const category = draft.category || '이체';
+  const recipient = draft.recipient ?? { name: '', account: '', logo: '' };
 
   const [period, setPeriod] = useState('monthly');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -99,19 +98,14 @@ export default function TransferAmount() {
     : (isWeekly ? 660 : 520);
 
   const handleSave = () => {
-    const amountLabel = amountNum > 0 ? `${amountNum.toLocaleString('ko-KR')}원` : '0원';
-    const transferDraft = {
-      category, recipient,
-      amount: amountNum, amountLabel,
-      amountHint: koreanHint || '',
-      period: isWeekly ? 'weekly' : 'monthly',
-      days: isWeekly ? [...selectedDays] : [],
-      dateLabel: isWeekly
-        ? (selectedDays.size > 0 ? '매주 ' + [...selectedDays].join('·') : '매주')
-        : '매월 25일',
+    updateDraft({
       name: nameStr.trim() || category,
-    };
-    navigate('/transfer/complete', { state: { transferDraft } });
+      amount: amountNum,
+      scheduleType: needWhen ? 'onDemand' : (isWeekly ? 'weekly' : 'monthly'),
+      weekdays: [...selectedDays],
+      day: 25,
+    });
+    navigate('/transfer/complete');
   };
 
   return (
@@ -161,7 +155,7 @@ export default function TransferAmount() {
       <div style={{ position: 'absolute', top: 0, left: 0, width: 375, height: 104, background: '#fff', zIndex: 10 }}>
         <StatusBar />
         <button
-          onClick={() => navigate('/transfer/purpose', { state: { recipient } })}
+          onClick={() => navigate('/transfer/purpose')}
           style={{ position: 'absolute', left: 35, top: 70, width: 9, height: 18, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
         >
           <img alt="" style={{ display: 'block', width: '100%', height: '100%' }} src={A('fs-back-arrow.svg')} />

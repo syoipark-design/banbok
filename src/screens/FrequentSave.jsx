@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
+import { useTransfers } from '../context/TransferContext';
 
 const A = (n) => `/assets/${n}`;
 
@@ -198,6 +199,7 @@ function FreqCard({ card, isOpen, isSelected, onToggle, onSelect, animDelay }) {
 // ── 화면 ──────────────────────────────────────────────────────────────────────
 export default function FrequentSave() {
   const navigate = useNavigate();
+  const { updateDraft } = useTransfers();
   const [openId, setOpenId] = useState({});
   const [selectedId, setSelectedId] = useState(null);
 
@@ -335,9 +337,8 @@ export default function FrequentSave() {
           onClick={() => {
             if (!hasSelected) return;
             const card = CARDS.find(c => c.id === selectedId);
-            navigate('/transfer/purpose', {
-              state: { recipient: { name: card.name, account: card.account, logo: card.logo } },
-            });
+            updateDraft({ recipient: { name: card.name, account: card.account, logo: card.logo } });
+            navigate('/transfer/purpose');
           }}
           style={{
             position: 'absolute',

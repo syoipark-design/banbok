@@ -1,7 +1,8 @@
 // 피그마 node 8:493 — 375×812 절대좌표 재현
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
+import { useTransfers } from '../context/TransferContext';
 
 const A = (n) => `/assets/${n}`;
 
@@ -92,8 +93,8 @@ const CARDS = [
 
 export default function TransferPurpose() {
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const recipient = state?.recipient ?? { name: '이유진', account: '신한 110123456789', logo: A('fs-logo-shinhan.svg') };
+  const { draft, updateDraft } = useTransfers();
+  const recipient = draft.recipient ?? { name: '', account: '', logo: '' };
 
   const [selectedId, setSelectedId] = useState(null);
   const hasSelected = selectedId !== null;
@@ -101,7 +102,8 @@ export default function TransferPurpose() {
   const handleNext = () => {
     if (!hasSelected) return;
     const card = CARDS.find(c => c.id === selectedId);
-    navigate('/transfer/amount', { state: { category: card.title, recipient } });
+    updateDraft({ category: card.title });
+    navigate('/transfer/amount');
   };
 
   return (

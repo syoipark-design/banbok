@@ -1,11 +1,10 @@
 // 피그마 node 10:1074 — 375×812 절대좌표, 원본 값 그대로
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
 import { useTransfers } from '../context/TransferContext';
 
 const A = (n) => `/assets/${n}`;
 
-// 한국어 조사: 마지막 글자에 받침 있으면 "을", 없으면 "를"
 const particle = (name) => {
   const last = name?.[name.length - 1];
   if (!last) return '을';
@@ -18,22 +17,22 @@ const particle = (name) => {
 
 export default function TransferComplete() {
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const { addTransfer } = useTransfers();
+  const { draft, commitDraft } = useTransfers();
 
-  const draft = state?.transferDraft ?? {
-    category: '용돈',
-    recipient: { name: '이유진', account: '신한 110123456789', logo: A('fs-logo-shinhan.svg') },
-    amountLabel: '500,000원',
-    dateLabel: '매월 25일',
-    name: '울딸 용돈',
-  };
+  const recipient = draft.recipient ?? { name: '', account: '', logo: '' };
+  const displayName = draft.name?.trim() || draft.category || '이체';
+  const amountLabel = draft.amount > 0
+    ? `${draft.amount.toLocaleString('ko-KR')}원`
+    : '0원';
+  const dateLabel =
+    draft.scheduleType === 'onDemand' ? '필요할 때' :
+    draft.scheduleType === 'weekly'
+      ? (draft.weekdays?.length > 0 ? '매주 ' + draft.weekdays.join('·') : '매주')
+      : `매월 ${draft.day ?? 25}일`;
+  const ptcl = particle(displayName);
 
-  const ptcl = particle(draft.name);
-
-  // 확인: 1회만 저장 후 홈 이동 (useEffect 아닌 onClick)
   const handleConfirm = () => {
-    addTransfer(draft);
+    commitDraft();
     navigate('/home');
   };
 
@@ -45,19 +44,12 @@ export default function TransferComplete() {
         <StatusBar />
       </div>
 
-      {/* ── 체크 아이콘
-           inset: top 21.92% = 178px, left 41.87% = 157px
-           width = 375×(1−0.4187−0.4187) = 61px, height = 812×(1−0.2192−0.7057) = 61px ── */}
+      {/* ── 체크 아이콘 ── */}
       <div style={{ position: 'absolute', left: 157, top: 178, width: 61, height: 61 }}>
-        <img
-          alt=""
-          src={A('tc-check-icon.svg')}
-          style={{ display: 'block', width: '100%', height: '100%' }}
-        />
+        <img alt="" src={A('tc-check-icon.svg')} style={{ display: 'block', width: '100%', height: '100%' }} />
       </div>
 
-      {/* ── 제목 — top:275, Bold 21px, line-height 1.4, letter-spacing −0.1333px
-           1행: [이름](#005a96) + [조사](#000)   2행: 저정했어요(#000)  ── */}
+      {/* ── 제목 ── */}
       <div style={{
         position: 'absolute', left: '50%', top: 275,
         transform: 'translateX(-50%)',
@@ -68,13 +60,13 @@ export default function TransferComplete() {
         whiteSpace: 'nowrap',
       }}>
         <p style={{ margin: 0 }}>
-          <span style={{ color: '#005a96' }}>{draft.name}</span>
+          <span style={{ color: '#005a96' }}>{displayName}</span>
           <span style={{ color: '#000' }}>{ptcl}</span>
         </p>
         <p style={{ margin: 0, color: '#000' }}>저정했어요</p>
       </div>
 
-      {/* ── 안내 문구 — top:349, Regular 14px, #8c8c8c ── */}
+      {/* ── 안내 문구 ── */}
       <div style={{
         position: 'absolute', left: '50%', top: 349,
         transform: 'translateX(-50%)',
@@ -88,41 +80,37 @@ export default function TransferComplete() {
         <p style={{ margin: 0 }}>언제든 수정할 수 있어요.</p>
       </div>
 
-      {/* ── 요약 카드 — left:20, top:448, w:335, h:175, border:#d9d9d9, r:15 ── */}
+      {/* ── 요약 카드 ── */}
       <div style={{
         position: 'absolute', left: 20, top: 448,
         width: 335, height: 175,
         border: '1px solid #d9d9d9', borderRadius: 15,
         background: '#fff',
       }}>
-
-        {/* 아바타 — frame(48,475) → card-rel(28,27), size:37 */}
+        {/* 아바타 */}
         <div style={{ position: 'absolute', left: 28, top: 27, width: 37, height: 37 }}>
-          <img
-            alt=""
-            src={draft.recipient.logo}
-            style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }}
-          />
+          {recipient.logo ? (
+            <img alt="" src={recipient.logo} style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }} />
+          ) : null}
         </div>
 
-        {/* 수신자 이름 — frame(100,473) → card-rel(80,25) */}
+        {/* 수신자 이름 */}
         <p style={{
           position: 'absolute', left: 80, top: 25, margin: 0,
           fontFamily: 'Pretendard, sans-serif',
           fontSize: 14.5, fontWeight: 500, color: '#222',
           lineHeight: 1.3, letterSpacing: -0.3256, whiteSpace: 'nowrap',
-        }}>{draft.recipient.name}</p>
+        }}>{recipient.name}</p>
 
-        {/* 계좌 — frame(100,495) → card-rel(80,47) */}
+        {/* 계좌 */}
         <p style={{
           position: 'absolute', left: 80, top: 47, margin: 0,
           fontFamily: 'Pretendard, sans-serif',
           fontSize: 14.5, fontWeight: 500, color: '#9a9a9a',
           lineHeight: 1.3, letterSpacing: -0.3256, whiteSpace: 'nowrap',
-        }}>{draft.recipient.account}</p>
+        }}>{recipient.account}</p>
 
-
-        {/* "금액" 라벨 — frame(50,536) → card-rel(30,88) */}
+        {/* 금액 라벨 */}
         <p style={{
           position: 'absolute', left: 30, top: 88, margin: 0,
           fontFamily: 'Pretendard, sans-serif',
@@ -130,16 +118,16 @@ export default function TransferComplete() {
           lineHeight: 1, letterSpacing: -0.3256, whiteSpace: 'nowrap',
         }}>금액</p>
 
-        {/* 금액 값 — 우측정렬, frame right:(355−325)=30 → card-rel right:30 */}
+        {/* 금액 값 */}
         <p style={{
           position: 'absolute', right: 30, top: 88, margin: 0,
           fontFamily: 'Pretendard, sans-serif',
           fontSize: 14.5, fontWeight: 500, color: 'rgba(34,34,34,0.74)',
           lineHeight: 1, letterSpacing: -0.0924,
           textAlign: 'right', whiteSpace: 'nowrap',
-        }}>{draft.amountLabel}</p>
+        }}>{amountLabel}</p>
 
-        {/* "이체 일정" 라벨 — frame(50,574) → card-rel(30,126) */}
+        {/* 이체 일정 라벨 */}
         <p style={{
           position: 'absolute', left: 30, top: 126, margin: 0,
           fontFamily: 'Pretendard, sans-serif',
@@ -147,27 +135,23 @@ export default function TransferComplete() {
           lineHeight: 1, letterSpacing: -0.3256, whiteSpace: 'nowrap',
         }}>이체 일정</p>
 
-        {/* 일정 값 — 우측정렬, frame right:30 → card-rel right:30 */}
+        {/* 이체 일정 값 */}
         <p style={{
           position: 'absolute', right: 30, top: 126, margin: 0,
           fontFamily: 'Pretendard, sans-serif',
           fontSize: 14.5, fontWeight: 500, color: 'rgba(34,34,34,0.74)',
           lineHeight: 1, letterSpacing: -0.0924,
           textAlign: 'right', whiteSpace: 'nowrap',
-        }}>{draft.dateLabel}</p>
+        }}>{dateLabel}</p>
       </div>
 
-      {/* ── 확인 버튼 바 — 하단 고정, 1개만 렌더 ── */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0,
-        width: 375, height: 113.55,
-        background: '#fff',
-      }}>
+      {/* ── 확인 버튼 바 ── */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 375, height: 113.55, background: '#fff' }}>
         <div
           onClick={handleConfirm}
           style={{
             position: 'absolute',
-            left: (375 - 342.557) / 2,  // = 16.22
+            left: (375 - 342.557) / 2,
             top: 20.99,
             width: 342.557, height: 55.344,
             borderRadius: 13.359,
