@@ -28,7 +28,8 @@ export default function TransferBottomSheet({ item, onClose }) {
     ? item.amount.toLocaleString('ko-KR') + '원'
     : '0원';
   const koreanStr = toKorean(item.amount);
-  const { name: recipientName = '', account = '', logo = '' } = item.recipient ?? {};
+  const avatarSrc = item.avatar || item.recipient?.logo || '';
+  const { name: recipientName = '', account = '', logo: bankLogo = '' } = item.recipient ?? {};
 
   return (
     <>
@@ -72,8 +73,8 @@ export default function TransferBottomSheet({ item, onClose }) {
           background: '#eef4ff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          {logo && (
-            <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+          {avatarSrc && (
+            <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
           )}
         </div>
 
@@ -128,10 +129,10 @@ export default function TransferBottomSheet({ item, onClose }) {
             letterSpacing: -0.1158, lineHeight: 1, whiteSpace: 'nowrap',
           }}>받는계좌</p>
 
-          {/* 은행/아바타 아이콘 (frame 103,647.44 → pill-rel 87,9.44) — 계좌 있을 때만 */}
-          {account && logo && (
+          {/* 은행 아이콘 (frame 103,647.44 → pill-rel 87,9.44) — 계좌·bank logo 있을 때만 */}
+          {account && bankLogo && (
             <div style={{ position: 'absolute', left: 87, top: 9.44, width: 24, height: 24 }}>
-              <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+              <img src={bankLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
             </div>
           )}
 
