@@ -1,7 +1,9 @@
 // 피그마 node 45:1947 — 375×812 절대좌표, 원본 값 그대로
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
 import { useTransfers } from '../context/TransferContext';
+import TransferBottomSheet from '../components/TransferBottomSheet';
 
 const truncateName = (name) => name.length > 4 ? name.slice(0, 4) + '..' : name;
 const A = (name) => `/assets/${name}`;
@@ -16,6 +18,7 @@ const css = `
 export default function Home() {
   const navigate = useNavigate();
   const { savedTransfers } = useTransfers();
+  const [selectedItem, setSelectedItem] = useState(null);
 
   return (
     <div style={{ position: 'relative', width: 375, height: 812, background: '#fff', overflow: 'hidden' }}>
@@ -151,7 +154,11 @@ export default function Home() {
           }}
         >
           {[...savedTransfers].reverse().map((t, i) => (
-            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <div
+              key={i}
+              onClick={() => setSelectedItem(t)}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+            >
               <div style={{ width: 50, height: 50, borderRadius: '50%', background: '#f0f0f0', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <img src={t.recipient.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
               </div>
@@ -210,6 +217,14 @@ export default function Home() {
       </div>
       <p style={{ position: 'absolute', left: 75, top: 795, margin: 0, fontFamily: 'Pretendard, sans-serif', fontSize: 15.25, fontWeight: 400, color: '#222', lineHeight: 1.3, whiteSpace: 'nowrap' }}>최수진</p>
       <p style={{ position: 'absolute', left: 75, top: 816.37, margin: 0, fontFamily: 'Pretendard, sans-serif', fontSize: 11.292, fontWeight: 400, color: '#9a9a9a', lineHeight: 1.3, whiteSpace: 'nowrap' }}>카카오뱅크 3333-12-1234567</p>
+
+      {/* ── 바텀시트 (아바타 클릭 시 오버레이) ── */}
+      {selectedItem && (
+        <TransferBottomSheet
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
 
       {/* ── 하단 플로팅 버튼 (DOM 마지막 → 위에 렌더링) ── */}
       <div style={{
