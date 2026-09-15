@@ -24,8 +24,10 @@ export default function TransferAmount() {
   const category = draft.category || '이체';
   const recipient = draft.recipient ?? { name: '', account: '', logo: '' };
 
-  const [period, setPeriod] = useState('monthly');
+  const [period, setPeriod] = useState(null);       // null | 'monthly' | 'weekly'
+  const [selectedDay, setSelectedDay] = useState(null); // null | 1-31
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showDayPicker, setShowDayPicker] = useState(false);
   const [selectedDays, setSelectedDays] = useState(new Set());
   // 금액: raw digit string으로 저장 → backspace/삭제 정상 동작, 포맷은 파생값
   const [amountStr, setAmountStr] = useState('');
@@ -97,13 +99,19 @@ export default function TransferAmount() {
     ? (isWeekly ? 515 : 450)
     : (isWeekly ? 660 : 520);
 
+  // 저장 가능 조건: needWhen이거나, 주기+날짜/요일 모두 선택
+  const canSave = needWhen
+    || (period === 'monthly' && selectedDay !== null)
+    || (period === 'weekly' && selectedDays.size > 0);
+
   const handleSave = () => {
+    if (!canSave) return;
     updateDraft({
       name: nameStr.trim() || category,
       amount: amountNum,
       scheduleType: needWhen ? 'onDemand' : (isWeekly ? 'weekly' : 'monthly'),
       weekdays: [...selectedDays],
-      day: 25,
+      day: selectedDay ?? 25,
     });
     navigate('/transfer/complete');
   };
@@ -131,20 +139,51 @@ export default function TransferAmount() {
         <>
           <div style={{ position: 'absolute', inset: 0, zIndex: 99 }} onClick={() => setShowDropdown(false)} />
           <div style={{
-            position: 'absolute', left: 21, top: 529, width: 108,
+            position: 'absolute', left: 21, top: 529, width: 126,
             background: '#fff', borderRadius: 12, zIndex: 100,
             boxShadow: '0 4px 20px rgba(0,0,0,0.12)', overflow: 'hidden',
           }}>
             {[{ value: 'monthly', label: '매월' }, { value: 'weekly', label: '매주' }].map(opt => (
               <div
                 key={opt.value}
-                onClick={() => { setPeriod(opt.value); setShowDropdown(false); }}
+                onClick={() => {
+                  if (opt.value !== period) { setSelectedDay(null); setSelectedDays(new Set()); }
+                  setPeriod(opt.value);
+                  setShowDropdown(false);
+                  setShowDayPicker(false);
+                }}
                 style={{
                   height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', background: period === opt.value ? '#f7f9fc' : '#fff',
                 }}
               >
                 <p style={{ margin: 0, fontSize: 16, fontWeight: period === opt.value ? 600 : 400, color: '#000', letterSpacing: -0.0986 }}>{opt.label}</p>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ── 날짜 선택 드롭다운 오버레이 (매월 전용) ── */}
+      {showDayPicker && (
+        <>
+          <div style={{ position: 'absolute', inset: 0, zIndex: 99 }} onClick={() => setShowDayPicker(false)} />
+          <div style={{
+            position: 'absolute', left: 158, top: 529, width: 110,
+            background: '#fff', borderRadius: 12, zIndex: 100,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+            maxHeight: 192, overflowY: 'auto',
+          }}>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+              <div
+                key={d}
+                onClick={() => { setSelectedDay(d); setShowDayPicker(false); }}
+                style={{
+                  height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', background: selectedDay === d ? '#f7f9fc' : '#fff',
+                }}
+              >
+                <p style={{ margin: 0, fontSize: 16, fontWeight: selectedDay === d ? 600 : 400, color: '#000', letterSpacing: -0.0986 }}>{d}일</p>
               </div>
             ))}
           </div>
@@ -270,11 +309,13 @@ export default function TransferAmount() {
           }}>
             {/* 주기 pill */}
             <div
-              onClick={() => setShowDropdown(d => !d)}
-              style={{ position: 'absolute', left: 21, top: 372, width: 108, height: 49, background: '#f7f9fc', borderRadius: 100, cursor: 'pointer' }}
+              onClick={() => { setShowDropdown(d => !d); setShowDayPicker(false); }}
+              style={{ position: 'absolute', left: 21, top: 372, width: 126, height: 49, background: '#f7f9fc', borderRadius: 100, cursor: 'pointer' }}
             >
-              <p style={{ position: 'absolute', left: 26, top: 12, margin: 0, fontSize: 16, fontWeight: 500, color: '#000', letterSpacing: -0.0986, lineHeight: '24.443px', whiteSpace: 'nowrap' }}>{isWeekly ? '매주' : '매월'}</p>
-              <div style={{ position: 'absolute', left: 71, top: 22, width: 11, height: 5.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ position: 'absolute', left: 20, top: 12, margin: 0, fontSize: 16, fontWeight: 500, letterSpacing: -0.0986, lineHeight: '24.443px', whiteSpace: 'nowrap', color: period ? '#000' : '#8c8c8c' }}>
+                {period === 'weekly' ? '매주' : period === 'monthly' ? '매월' : '주기 선택'}
+              </p>
+              <div style={{ position: 'absolute', right: 12, top: 22, width: 11, height: 5.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ flexShrink: 0, transform: 'rotate(-90deg)' }}>
                   <div style={{ position: 'relative', width: 5.5, height: 11 }}>
                     <div style={{ position: 'absolute', inset: '-5% -10%' }}>
@@ -285,10 +326,15 @@ export default function TransferAmount() {
               </div>
             </div>
 
-            {/* 매월: 25일 pill */}
-            {!isWeekly && (
-              <div style={{ position: 'absolute', left: 140, top: 372, width: 108, height: 49, background: '#f7f9fc', borderRadius: 100 }}>
-                <p style={{ position: 'absolute', left: 38, top: 12, margin: 0, fontSize: 16, fontWeight: 500, color: '#000', letterSpacing: -0.0986, lineHeight: '24.443px', whiteSpace: 'nowrap' }}>25일</p>
+            {/* 매월: 날짜 pill */}
+            {period === 'monthly' && (
+              <div
+                onClick={() => { setShowDayPicker(d => !d); setShowDropdown(false); }}
+                style={{ position: 'absolute', left: 158, top: 372, width: 110, height: 49, background: '#f7f9fc', borderRadius: 100, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <p style={{ margin: 0, fontSize: 16, fontWeight: 500, letterSpacing: -0.0986, lineHeight: '24.443px', whiteSpace: 'nowrap', color: selectedDay ? '#000' : '#8c8c8c' }}>
+                  {selectedDay ? `${selectedDay}일` : '날짜 선택'}
+                </p>
               </div>
             )}
 
@@ -353,11 +399,13 @@ export default function TransferAmount() {
           style={{
             position: 'absolute', left: (375 - 342.557) / 2, top: 20.99,
             width: 342.557, height: 55.344, borderRadius: 13.359,
-            background: '#ffe200', cursor: 'pointer',
+            background: canSave ? '#ffe200' : '#e6e6e6',
+            cursor: canSave ? 'pointer' : 'default',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'background 0.2s ease',
           }}
         >
-          <p style={{ margin: 0, fontSize: 16.221, fontWeight: 600, color: '#222', letterSpacing: -0.4771, lineHeight: 1, whiteSpace: 'nowrap' }}>저장하기</p>
+          <p style={{ margin: 0, fontSize: 16.221, fontWeight: 600, color: canSave ? '#222' : '#999', letterSpacing: -0.4771, lineHeight: 1, whiteSpace: 'nowrap', transition: 'color 0.2s ease' }}>저장하기</p>
         </div>
       </div>
     </div>
