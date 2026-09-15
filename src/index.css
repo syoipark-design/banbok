@@ -1,0 +1,34 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
+@import "tailwindcss";
+
+* {
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #e5e5e5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100svh;
+  padding: 24px 0;
+}
+
+.device-frame {
+  width: 375px;
+  height: 812px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  scrollbar-width: none;
+}
+
+.device-frame::-webkit-scrollbar {
+  display: none;
+}
