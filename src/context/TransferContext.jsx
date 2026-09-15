@@ -2,25 +2,25 @@ import { createContext, useContext, useState } from 'react';
 
 const TransferContext = createContext();
 
-// 피그마 45:1947 기본 4개 — 역순 저장(렌더 시 .reverse()로 원래 순서 복원)
-// avatar: 스크롤 원형 이미지 / recipient.logo: 모달 pill 은행 아이콘
+// 표시 순서: 울딸 용돈 / 고교동창회 / 네일샵 / 순대트럭 (왼→오)
+// 저장은 역순, 렌더 시 .reverse()로 복원
 const DEFAULT_TRANSFERS = [
   {
     name: '순대트럭', avatar: '/assets/freq-avatar-truck.png',
-    recipient: { name: '박진순', account: '카카오뱅크 3333-02-3456789', logo: '/assets/logo-kakaobank-save.svg' },
-    category: '기타', amount: 25000, amountLabel: '25,000원',
-    scheduleType: 'monthly', day: 10, weekdays: [], dateLabel: '매월 10일',
+    recipient: { name: '이순대', account: '토스뱅크 1231-2345-6789', logo: '/assets/logo-toss-circle.svg' },
+    category: '기타', amount: 15000, amountLabel: '15,000원',
+    scheduleType: 'onDemand', day: 25, weekdays: [], dateLabel: '필요할 때',
   },
   {
     name: '네일샵', avatar: '/assets/freq-avatar-nail.png',
-    recipient: { name: '뷰티네일', account: '신한 110234567890', logo: '/assets/logo-shinhan-save.svg' },
-    category: '기타', amount: 80000, amountLabel: '80,000원',
+    recipient: { name: '이진솔', account: '하나 789-111222-33304', logo: '/assets/logo-hana-save.svg' },
+    category: '기타', amount: 70000, amountLabel: '70,000원',
     scheduleType: 'onDemand', day: 25, weekdays: [], dateLabel: '필요할 때',
   },
   {
     name: '고교동창회', avatar: '/assets/freq-avatar-school.png',
-    recipient: { name: '김상준', account: '카카오뱅크 3333-01-2345678', logo: '/assets/logo-kakaobank-save.svg' },
-    category: '회비', amount: 50000, amountLabel: '50,000원',
+    recipient: { name: '김국민', account: '기업 000-1234-56789', logo: '/assets/ibk-logo.png' },
+    category: '회비', amount: 30000, amountLabel: '30,000원',
     scheduleType: 'monthly', day: 15, weekdays: [], dateLabel: '매월 15일',
   },
   {
@@ -32,11 +32,11 @@ const DEFAULT_TRANSFERS = [
 ];
 
 const EMPTY_DRAFT = {
-  recipient: null,       // { name, account, logo } — FrequentSave에서 선택
-  category: '',          // TransferPurpose에서 선택
-  name: '',              // TransferAmount에서 입력
+  recipient: null,
+  category: '',
+  name: '',
   amount: 0,
-  scheduleType: 'monthly', // 'monthly' | 'weekly' | 'onDemand'
+  scheduleType: 'monthly',
   day: 25,
   weekdays: [],
 };
@@ -50,8 +50,7 @@ export function TransferProvider({ children }) {
 
   const commitDraft = () => {
     const amountLabel = draft.amount > 0
-      ? `${draft.amount.toLocaleString('ko-KR')}원`
-      : '0원';
+      ? `${draft.amount.toLocaleString('ko-KR')}원` : '0원';
     const dateLabel =
       draft.scheduleType === 'onDemand' ? '필요할 때' :
       draft.scheduleType === 'weekly'
