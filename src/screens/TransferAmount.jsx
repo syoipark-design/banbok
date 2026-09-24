@@ -2,8 +2,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
-import girlSvg from '../assets/girl.svg';
+import AvatarCustomSheet from '../components/AvatarCustomSheet';
 import { useTransfers } from '../context/TransferContext';
+
+const DEFAULT_AVATAR = { color: '#e0e0e0', emojiSrc: '/assets/ac-emoji-girl.svg' };
 
 const A = (n) => `/assets/${n}`;
 const MAX_AMOUNT = 100_000_000; // 1억 한도
@@ -33,6 +35,8 @@ export default function TransferAmount() {
   const [amountStr, setAmountStr] = useState('');
   const [nameStr, setNameStr] = useState('');
   const [needWhen, setNeedWhen] = useState(false);
+  const [avatarConfig, setAvatarConfig] = useState(DEFAULT_AVATAR);
+  const [showAvatarSheet, setShowAvatarSheet] = useState(false);
 
   // 1억 한도 피드백
   const [shaking, setShaking] = useState(false);
@@ -112,6 +116,7 @@ export default function TransferAmount() {
       scheduleType: needWhen ? 'onDemand' : (isWeekly ? 'weekly' : 'monthly'),
       weekdays: [...selectedDays],
       day: selectedDay ?? 25,
+      avatar: avatarConfig,
     });
     navigate('/transfer/complete');
   };
@@ -210,8 +215,17 @@ export default function TransferAmount() {
         <div style={{ position: 'relative', height: contentH }}>
 
           {/* ── 이름 섹션 ── */}
-          <div style={{ position: 'absolute', left: 21, top: 22, width: 61, height: 61, background: '#ccefff', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img alt="" style={{ display: 'block', width: 33, height: 35, objectFit: 'contain' }} src={girlSvg} />
+          <div
+            onClick={() => setShowAvatarSheet(true)}
+            style={{
+              position: 'absolute', left: 21, top: 22,
+              width: 61, height: 61,
+              background: avatarConfig.color, borderRadius: 6,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <img alt="" src={avatarConfig.emojiSrc} style={{ display: 'block', width: 33, height: 35, objectFit: 'contain' }} />
           </div>
           <div style={{ position: 'absolute', left: 92, top: 22, width: 262, height: 61, background: '#f7f9fc', borderRadius: 6 }}>
             <input
@@ -391,6 +405,19 @@ export default function TransferAmount() {
 
         </div>
       </div>
+
+      {/* ── 아바타 커스텀 시트 ── */}
+      {showAvatarSheet && (
+        <AvatarCustomSheet
+          initialColor={avatarConfig.color}
+          initialEmoji={avatarConfig.emojiSrc}
+          onConfirm={(color, emojiSrc) => {
+            setAvatarConfig({ color, emojiSrc });
+            setShowAvatarSheet(false);
+          }}
+          onClose={() => setShowAvatarSheet(false)}
+        />
+      )}
 
       {/* ── 하단 저장하기 바 ── */}
       <div style={{ position: 'absolute', bottom: 0, left: 0, width: 375, height: 113.55, background: '#fff' }}>

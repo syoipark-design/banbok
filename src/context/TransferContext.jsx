@@ -1,34 +1,22 @@
 import { createContext, useContext, useState } from 'react';
+import { getBankLogo } from '../lib/bankLogos';
 
 const TransferContext = createContext();
 
 // 표시 순서: 울딸 용돈 / 고교동창회 / 네일샵 / 순대트럭 (왼→오)
 // 저장은 역순, 렌더 시 .reverse()로 복원
+const mk = (name, avatar, recipientName, account, category, amount, scheduleType, day, dateLabel) => ({
+  name, avatar,
+  recipient: { name: recipientName, account, logo: getBankLogo(account) },
+  category, amount, amountLabel: `${amount.toLocaleString('ko-KR')}원`,
+  scheduleType, day, weekdays: [], dateLabel,
+});
+
 const DEFAULT_TRANSFERS = [
-  {
-    name: '순대트럭', avatar: '/assets/freq-avatar-truck.png',
-    recipient: { name: '이순대', account: '토스뱅크 1231-2345-6789', logo: '/assets/logo-toss-circle.svg' },
-    category: '기타', amount: 15000, amountLabel: '15,000원',
-    scheduleType: 'onDemand', day: 25, weekdays: [], dateLabel: '필요할 때',
-  },
-  {
-    name: '네일샵', avatar: '/assets/freq-avatar-nail.png',
-    recipient: { name: '이진솔', account: '하나 789-111222-33304', logo: '/assets/logo-hana-save.svg' },
-    category: '기타', amount: 70000, amountLabel: '70,000원',
-    scheduleType: 'onDemand', day: 25, weekdays: [], dateLabel: '필요할 때',
-  },
-  {
-    name: '고교동창회', avatar: '/assets/freq-avatar-school.png',
-    recipient: { name: '김국민', account: '기업 000-1234-56789', logo: '/assets/ibk-logo.png' },
-    category: '회비', amount: 30000, amountLabel: '30,000원',
-    scheduleType: 'monthly', day: 15, weekdays: [], dateLabel: '매월 15일',
-  },
-  {
-    name: '울딸 용돈', avatar: '/assets/freq-avatar-uldal.png',
-    recipient: { name: '이유진', account: '신한 110123456789', logo: '/assets/logo-shinhan-save.svg' },
-    category: '용돈', amount: 500000, amountLabel: '500,000원',
-    scheduleType: 'monthly', day: 25, weekdays: [], dateLabel: '매월 25일',
-  },
+  mk('순대트럭',   '/assets/freq-avatar-truck.png',  '이순대', '토스뱅크 1231-2345-6789', '기타', 15000,  'onDemand', 25, '필요할 때'),
+  mk('네일샵',    '/assets/freq-avatar-nail.png',   '이진솔', '하나 789-111222-33304',    '기타', 70000,  'onDemand', 25, '필요할 때'),
+  mk('고교동창회', '/assets/freq-avatar-school.png', '김국민', '기업 000-1234-56789',      '회비', 30000,  'monthly',  15, '매월 15일'),
+  mk('울딸 용돈',  '/assets/freq-avatar-uldal.png',  '이유진', '신한 110123456789',        '용돈', 500000, 'monthly',  25, '매월 25일'),
 ];
 
 const EMPTY_DRAFT = {
@@ -39,6 +27,7 @@ const EMPTY_DRAFT = {
   scheduleType: 'monthly',
   day: 25,
   weekdays: [],
+  avatar: { color: '#e0e0e0', emojiSrc: '/assets/ac-emoji-girl.svg' },
 };
 
 export function TransferProvider({ children }) {
@@ -48,6 +37,10 @@ export function TransferProvider({ children }) {
   const updateDraft = (patch) => setDraft(prev => ({ ...prev, ...patch }));
   const resetDraft = () => setDraft(EMPTY_DRAFT);
 
+  const updateTransfer = (targetItem, patch) => {
+    setSavedTransfers(prev => prev.map(t => t === targetItem ? { ...t, ...patch } : t));
+  };
+
   const commitDraft = () => {
     const amountLabel = draft.amount > 0
       ? `${draft.amount.toLocaleString('ko-KR')}원` : '0원';
@@ -56,8 +49,12 @@ export function TransferProvider({ children }) {
       draft.scheduleType === 'weekly'
         ? (draft.weekdays.length > 0 ? '매주 ' + draft.weekdays.join('·') : '매주')
         : `매월 ${draft.day}일`;
+    const recipient = draft.recipient
+      ? { ...draft.recipient, logo: getBankLogo(draft.recipient.account) || draft.recipient.logo || '' }
+      : null;
     const transfer = {
       ...draft,
+      recipient,
       name: draft.name.trim() || draft.category || '이체',
       amountLabel,
       dateLabel,
@@ -67,7 +64,7 @@ export function TransferProvider({ children }) {
   };
 
   return (
-    <TransferContext.Provider value={{ savedTransfers, draft, updateDraft, resetDraft, commitDraft }}>
+    <TransferContext.Provider value={{ savedTransfers, draft, updateDraft, resetDraft, commitDraft, updateTransfer }}>
       {children}
     </TransferContext.Provider>
   );

@@ -159,8 +159,12 @@ export default function Home() {
               onClick={() => setSelectedItem(t)}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer' }}
             >
-              <div style={{ width: 50, height: 50, borderRadius: '50%', background: '#f0f0f0', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img src={t.avatar || t.recipient?.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+              <div style={{ width: 50, height: 50, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: typeof t.avatar === 'object' ? t.avatar.color : '#f0f0f0' }}>
+                {typeof t.avatar === 'object' ? (
+                  <img src={t.avatar.emojiSrc} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain', display: 'block' }} />
+                ) : (
+                  <img src={t.avatar || t.recipient?.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+                )}
               </div>
               <p style={{ margin: 0, fontFamily: 'Pretendard, sans-serif', fontSize: 14.126, fontWeight: 400, color: '#222', lineHeight: '22.174px', letterSpacing: -0.0895, textAlign: 'center', whiteSpace: 'nowrap' }}>
                 {truncateName(t.name)}
