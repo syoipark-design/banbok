@@ -27,7 +27,7 @@ const EMPTY_DRAFT = {
   scheduleType: 'monthly',
   day: 25,
   weekdays: [],
-  avatar: { color: '#e0e0e0', emojiSrc: '/assets/ac-emoji-girl.svg' },
+  avatar: { color: '#e0e0e0', emojiSrc: '/assets/ac-emoji-girl.png' },
 };
 
 export function TransferProvider({ children }) {

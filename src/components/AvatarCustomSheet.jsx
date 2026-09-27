@@ -9,14 +9,30 @@ const COLORS = [
 ];
 
 const EMOJIS = [
-  ['/assets/ac-emoji-cake.svg',      '/assets/ac-emoji-girl.svg',       '/assets/ac-emoji-house.svg',  '/assets/ac-emoji-golf.svg'],
-  ['/assets/ac-emoji-nail.svg',      '/assets/ac-emoji-airplane.png',   '/assets/ac-emoji-dog.png',    '/assets/ac-emoji-basketball.svg'],
-  ['/assets/ac-emoji-ambulance.png', '/assets/ac-emoji-hospital.png',   '/assets/ac-emoji-hotpot.svg', '/assets/ac-emoji-taekwondo.png'],
+  [
+    { src: '/assets/ac-emoji-cake.png',      scale: 1   },
+    { src: '/assets/ac-emoji-girl.png',      scale: 1   },
+    { src: '/assets/ac-emoji-house.png',     scale: 1   },
+    { src: '/assets/ac-emoji-golf.png',      scale: 1   },
+  ],
+  [
+    { src: '/assets/ac-emoji-nail.png',      scale: 1.2 },
+    { src: '/assets/ac-emoji-airplane.png',  scale: 1.2 },
+    { src: '/assets/ac-emoji-taekwondo.png', scale: 1   },
+    { src: '/assets/ac-emoji-basketball.png', scale: 1  },
+  ],
+  [
+    { src: '/assets/ac-emoji-ambulance.png', scale: 1   },
+    { src: '/assets/ac-emoji-hospital.png',  scale: 1   },
+    { src: '/assets/ac-emoji-hotpot.png',    scale: 1   },
+    { src: '/assets/ac-emoji-dog.png',       scale: 1   },
+  ],
 ];
 
 const COLS      = [26, 117, 208, 299];
 const COL_ROWS  = [107, 185, 263];
-const EMO_ROWS  = [104, 185, 263];
+const EMO_COLS  = [17, 107, 197, 287];
+const EMO_ROWS  = [101, 192, 283];
 
 const css = `
   @keyframes ac-sheet-up   { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -30,7 +46,7 @@ const pre = { margin: 0, fontFamily: 'Pretendard, sans-serif', whiteSpace: 'nowr
 export default function AvatarCustomSheet({ initialColor, initialEmoji, onConfirm, onClose }) {
   const [tab,      setTab]      = useState('color');
   const [selColor, setSelColor] = useState(initialColor || '#CCEFFF');
-  const [selEmoji, setSelEmoji] = useState(initialEmoji || '/assets/ac-emoji-girl.svg');
+  const [selEmoji, setSelEmoji] = useState(initialEmoji || '/assets/ac-emoji-girl.png');
 
   return (
     <>
@@ -124,8 +140,8 @@ export default function AvatarCustomSheet({ initialColor, initialEmoji, onConfir
 
         {/* ── 이모지 그리드 ── */}
         {tab === 'emoji' && EMO_ROWS.map((rowTop, ri) =>
-          COLS.map((colLeft, ci) => {
-            const src = EMOJIS[ri][ci];
+          EMO_COLS.map((colLeft, ci) => {
+            const { src, scale } = EMOJIS[ri][ci];
             const sel = selEmoji === src;
             return (
               <div
@@ -133,16 +149,16 @@ export default function AvatarCustomSheet({ initialColor, initialEmoji, onConfir
                 onClick={() => setSelEmoji(src)}
                 style={{
                   position: 'absolute', left: colLeft, top: rowTop,
-                  width: 52, height: 52, borderRadius: '50%',
+                  width: 72, height: 72, borderRadius: '50%',
                   background: sel ? '#f0f0f0' : 'transparent',
-                  border: sel ? '2px solid #222' : '2px solid transparent',
                   boxSizing: 'border-box',
                   cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'border-color 0.12s ease, background 0.12s ease',
+                  boxShadow: sel ? '0 0 0 2.5px #fff, 0 0 0 4.5px #222' : 'none',
+                  transition: 'box-shadow 0.12s ease, background 0.12s ease',
                 }}
               >
-                <img src={src} alt="" style={{ width: 36, height: 36, objectFit: 'contain', display: 'block' }} />
+                <img src={src} alt="" style={{ width: 48, height: 48, objectFit: 'contain', display: 'block', transform: `scale(${scale})` }} />
               </div>
             );
           })

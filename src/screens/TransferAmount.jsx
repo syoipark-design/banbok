@@ -5,7 +5,7 @@ import StatusBar from '../components/StatusBar';
 import AvatarCustomSheet from '../components/AvatarCustomSheet';
 import { useTransfers } from '../context/TransferContext';
 
-const DEFAULT_AVATAR = { color: '#e0e0e0', emojiSrc: '/assets/ac-emoji-girl.svg' };
+const DEFAULT_AVATAR = { color: '#e0e0e0', emojiSrc: '/assets/ac-emoji-girl.png' };
 
 const A = (n) => `/assets/${n}`;
 const MAX_AMOUNT = 100_000_000; // 1억 한도
